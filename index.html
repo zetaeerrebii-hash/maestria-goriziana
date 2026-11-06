@@ -46,6 +46,7 @@ button{font-family:var(--f-body);font-size:16px;border-radius:3px;border:1px sol
 button:hover{border-color:var(--brass-dk)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .go{background:var(--oxblood);color:var(--oxblood-ink);border-color:#9b3a36;font-family:var(--f-display);font-size:19px;font-weight:600;letter-spacing:.18em;flex:1;min-height:50px}
+.shootrow{margin-top:-4px}
 .go:hover{background:#8a2427}
 .hints{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
 .tog{display:flex;align-items:center;gap:10px;font-size:16px;cursor:pointer}
@@ -81,6 +82,7 @@ details ul{margin:8px 0 0;padding-left:18px}
   </div>
 
   <canvas id="cv" width="1092" height="592" aria-label="Tavolo da biliardo: tocca o trascina per mirare"></canvas>
+  <div class="row shootrow"><button class="go" id="shoot">Tira</button><button id="newg">Nuova partita</button></div>
   <div class="msg" id="msg">Tocca o trascina sul tavolo per orientare la stecca.</div>
 
   <div class="ctrl">
@@ -114,7 +116,6 @@ details ul{margin:8px 0 0;padding-left:18px}
           <button id="spC">Al centro</button>
         </div>
       </div>
-      <div class="row"><button class="go" id="shoot">Tira</button><button id="newg">Nuova partita</button></div>
     </div>
   </div>
 
