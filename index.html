@@ -128,6 +128,7 @@ details ul{margin:8px 0 0;padding-left:18px}
       <li>Birilli abbattuti con la tua biglia: tutti i punti del tiro vanno all'avversario.</li>
       <li>Prima il pallino rosso: 4 punti all'avversario, anche se hai fatto sponda prima.</li>
       <li>Nessuna biglia toccata: 2 punti all'avversario, che ha la biglia in mano e mette la propria biglia dove vuole nella metà del tavolo opposta a quella dell'avversario.</li>
+      <li>L'effetto laterale passa alla biglia colpita: ne devia un poco la partenza dal lato opposto e le trasmette una parte dell'effetto, specchiato, che si vede quando arriva in sponda.</li>
       <li>I birilli si rialzano a ogni tiro. Il tiro completo simula il colpo con lo stesso motore fisico, effetto compreso.</li>
     </ul>
   </details>
@@ -238,6 +239,14 @@ function collide(st,ka,kb){
   const rel=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;if(rel<=0)return;
   const pre={a:{vx:a.vx,vy:a.vy},b:{vx:b.vx,vy:b.vy}};
   const j=rel*(1+0.96)/2;a.vx-=j*nx;a.vy-=j*ny;b.vx+=j*nx;b.vy+=j*ny;
+  {/* effetto laterale tra biglie: attrito nel punto di contatto */
+   const sTot=a.side+b.side;
+   if(Math.abs(sTot)>0.01){
+     const tx=ny,ty=-nx;
+     const throwK=0.07*Math.max(-1,Math.min(1,sTot))*j;
+     b.vx+=throwK*tx;b.vy+=throwK*ty;a.vx-=throwK*tx;a.vy-=throwK*ty;
+     const T=0.2*sTot;a.side-=T;b.side-=T;
+   }}
   for(const [o,k] of [[a,'a'],[b,'b']]){if(Math.abs(o.fol)>0.02){const s=Math.hypot(pre[k].vx,pre[k].vy);if(s>1){o.vx+=pre[k].vx*o.fol*0.36;o.vy+=pre[k].vy*o.fol*0.36;}o.fol=0;}}
   const e=st.ev,pair=[ka,kb];
   if(pair.includes(e.shooter)&&!e.first)e.first=pair.find(x=>x!==e.shooter);
