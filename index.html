@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maestria Goriziana</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+/* Layout: intestazione incisa, segnapunti a due placche, tavolo, sotto due pannelli comandi (affiancati su schermi larghi). Look unico, scuro e caldo: noce, bordeaux, ottone, avorio */
+:root{
+  --bg:#1c1310; --panel:#2a1b16; --panel-2:#33211a; --line:#5a3f2c;
+  --ink:#f1e6cf; --muted:#bfa98a; --brass:#c9a25a; --brass-dk:#8f6d33; --oxblood:#7a1f22; --oxblood-ink:#f7e9d4;
+  --f-display:"Cinzel","Trajan Pro",Georgia,serif;
+  --f-body:"EB Garamond",Garamond,Georgia,"Times New Roman",serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 32px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(24px,4.6vw,38px);letter-spacing:.14em;margin:0;color:var(--brass);text-wrap:balance}
+.orn{display:flex;align-items:center;gap:10px;color:var(--brass-dk);font-size:13px;letter-spacing:.3em;text-transform:uppercase;font-family:var(--f-display)}
+.orn::before,.orn::after{content:"";width:48px;height:1px;background:var(--brass-dk)}
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.pl{display:flex;align-items:center;gap:12px;padding:8px 14px;border:1px solid var(--line);border-radius:4px;background:var(--panel);min-width:0}
+.pl.r{justify-content:flex-end;text-align:right}
+.pl.on{border-color:var(--brass);box-shadow:inset 0 0 0 1px var(--brass)}
+.badge{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--f-display);font-weight:600;font-size:17px;color:#2a1b16;box-shadow:inset -3px -4px 6px rgba(0,0,0,.25)}
+.pts{font-family:var(--f-display);font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
+.nm{font-size:14px;color:var(--muted);font-style:italic}
+.mid{font-family:var(--f-display);font-size:13px;letter-spacing:.12em;color:var(--muted);text-align:center}
+.mid b{display:block;color:var(--brass);font-size:22px;font-weight:600}
+canvas{width:100%;height:auto;display:block;touch-action:none;border-radius:10px;cursor:crosshair}
+.msg{min-height:24px;font-size:16px;color:var(--muted);font-style:italic;text-align:center}
+.msg b{color:var(--brass);font-weight:500;font-style:normal}
+.ctrl{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:760px){.ctrl{grid-template-columns:1fr 1fr}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.lab{font-family:var(--f-display);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.lab span{color:var(--ink);font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:.02em;font-family:var(--f-body);font-size:16px}
+.row{display:flex;align-items:center;gap:8px}
+input[type=range]{flex:1;min-width:0;accent-color:var(--brass);height:28px}
+button{font-family:var(--f-body);font-size:16px;border-radius:3px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);padding:8px 14px;cursor:pointer;min-height:40px}
+button:hover{border-color:var(--brass-dk)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.go{background:var(--oxblood);color:var(--oxblood-ink);border-color:#9b3a36;font-family:var(--f-display);font-size:19px;font-weight:600;letter-spacing:.18em;flex:1;min-height:50px}
+.go:hover{background:#8a2427}
+.hints{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.tog{display:flex;align-items:center;gap:10px;font-size:16px;cursor:pointer}
+.tog input{width:20px;height:20px;accent-color:var(--brass)}
+.tog small{color:var(--muted);font-style:italic;font-size:14px}
+.spinw{display:grid;grid-template-columns:auto auto 1fr;gap:6px 12px;align-items:center}
+.spinw svg{width:118px;height:118px;grid-row:1;grid-column:1}
+.vwrap{grid-row:1;grid-column:2;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted);font-family:var(--f-display);letter-spacing:.08em}
+input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:28px;height:96px;flex:none}
+.hz{grid-row:2;grid-column:1/3;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-family:var(--f-display);letter-spacing:.08em}
+.side{grid-row:1/3;grid-column:3;display:flex;flex-direction:column;gap:8px;min-width:0}
+.small{font-size:14px;color:var(--muted);font-style:italic}
+details{font-size:15px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--brass);font-family:var(--f-display);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+details ul{margin:8px 0 0;padding-left:18px}
+@media(max-width:460px){.spinw{grid-template-columns:auto auto}.side{grid-row:3;grid-column:1/3}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Maestria Goriziana</h1>
+    <div class="orn">Nove birilli</div>
+  </header>
+
+  <div class="score">
+    <div class="pl on" id="p0"><span class="badge" style="background:#f3ecdc">Z</span><div><div class="pts" id="s0">0</div><div class="nm">biglia bianca</div></div></div>
+    <div class="mid" id="turn">Tocca a<b>Z</b></div>
+    <div class="pl r" id="p1"><div><div class="pts" id="s1">0</div><div class="nm">biglia gialla</div></div><span class="badge" style="background:#d9a63c">P</span></div>
+  </div>
+
+  <canvas id="cv" width="1092" height="592" aria-label="Tavolo da biliardo: tocca o trascina per mirare"></canvas>
+  <div class="msg" id="msg">Tocca o trascina sul tavolo per orientare la stecca.</div>
+
+  <div class="ctrl">
+    <div class="box">
+      <div class="lab">Direzione della stecca <span id="angOut">0,0°</span></div>
+      <div class="row">
+        <button id="aL" aria-label="Ruota a sinistra">−</button>
+        <input type="range" id="ang" min="0" max="359.9" step="0.1" value="0" aria-label="Direzione">
+        <button id="aR" aria-label="Ruota a destra">+</button>
+      </div>
+      <div class="lab">Forza <span id="powOut">40</span></div>
+      <input type="range" id="pow" min="5" max="100" step="1" value="40" aria-label="Forza">
+      <div class="hints">
+        <label class="tog"><input type="checkbox" id="hBase"> Prolungamento <small>fino al primo impatto</small></label>
+        <label class="tog"><input type="checkbox" id="hFull"> Tiro completo <small>percorsi e birilli</small></label>
+      </div>
+    </div>
+    <div class="box">
+      <div class="lab">Punto d'impatto <span id="spinOut">centro</span></div>
+      <div class="spinw">
+        <svg id="sp" viewBox="-60 -60 120 120" aria-label="Punto d'impatto sulla biglia">
+          <circle r="54" fill="#f3ecdc" stroke="#8f6d33" stroke-width="2"/>
+          <circle r="43" fill="none" stroke="#cdbf9f" stroke-dasharray="3 4"/>
+          <line x1="-54" y1="0" x2="54" y2="0" stroke="#cdbf9f"/><line x1="0" y1="-54" x2="0" y2="54" stroke="#cdbf9f"/>
+          <circle id="spDot" r="7" fill="#7a1f22"/>
+        </svg>
+        <div class="vwrap">alto<input type="range" class="vert" id="spV" min="-100" max="100" step="5" value="0" aria-label="Effetto alto o basso">basso</div>
+        <div class="hz">sx<input type="range" id="spH" min="-100" max="100" step="5" value="0" aria-label="Effetto laterale">dx</div>
+        <div class="side">
+          <div class="small">Alto: la biglia segue dopo l'urto. Basso: torna indietro. Destra o sinistra: dopo la sponda la biglia apre verso quel lato.</div>
+          <button id="spC">Al centro</button>
+        </div>
+      </div>
+      <div class="row"><button class="go" id="shoot">Tira</button><button id="newg">Nuova partita</button></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>Punteggio</summary>
+    <ul>
+      <li>Si tira a turno. Con la tua biglia devi colpire prima quella avversaria.</li>
+      <li>Birilli: esterno 2, interno 8, rosso 10 con altri birilli, 30 da solo. Pallino rosso colpito: 6.</li>
+      <li>Se la tua biglia tocca una sponda prima di colpire l'avversaria, i punti del tiro raddoppiano.</li>
+      <li>Birilli abbattuti con la tua biglia: tutti i punti del tiro vanno all'avversario.</li>
+      <li>Prima il pallino rosso: 4 punti all'avversario, anche se hai fatto sponda prima.</li>
+      <li>Nessuna biglia toccata: 2 punti all'avversario, che ha la biglia in mano e posiziona entrambe le biglie nella stessa metà del tavolo.</li>
+      <li>I birilli si rialzano a ogni tiro. Il tiro completo simula il colpo con lo stesso motore fisico, effetto compreso.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+const PW=1000,PH=500,RW=46,R=12,PR=4.5,FR=270,DT=1/240,KEYS=['w','y','r'];
+const COL={w:'#f3ecdc',y:'#d9a63c',r:'#a8231f'};
+const $=id=>document.getElementById(id);
+let inHand=null,dragBall=null,S,turn=0,score=[0,0],angle=0,power=40,sx=0,sy=0,moving=false,cueAnim=null,acc=0,pred=null,predKey='';
+
+/* castello: croce a passo uniforme D intorno al rosso */
+const D=34;
+function makePins(){
+  const C={x:PW/2,y:PH/2},p=[{x:C.x,y:C.y,t:'red',up:true}];
+  [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{
+    p.push({x:C.x+a*D,y:C.y+b*D,t:'int',up:true});
+    p.push({x:C.x+a*2*D,y:C.y+b*2*D,t:'ext',up:true});
+  });
+  return p;
+}
+const ball=(x,y)=>({x,y,vx:0,vy:0,side:0,fol:0});
+function newGame(){
+  S={balls:{w:ball(200,330),y:ball(800,170),r:ball(800,330)},pins:makePins(),ev:null};
+  score=[0,0];turn=0;inHand=null;aimAtOpp();ui();
+  msg('Tocca o trascina sul tavolo per orientare la stecca.');
+}
+const me=()=>turn?'y':'w', opp=()=>turn?'w':'y';
+function aimAtOpp(){const a=S.balls[me()],b=S.balls[opp()];setAngle(Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI);}
+function setAngle(deg){angle=((deg%360)+360)%360;$('ang').value=angle.toFixed(1);$('angOut').textContent=angle.toFixed(1).replace('.',',')+'°';}
+function msg(h){$('msg').innerHTML=h;}
+function ui(){
+  $('s0').textContent=score[0];$('s1').textContent=score[1];
+  $('p0').classList.toggle('on',turn==0);$('p1').classList.toggle('on',turn==1);
+  $('turn').innerHTML='Tocca a<b>'+(turn?'P':'Z')+'</b>';
+}
+
+/* input */
+function toPlay(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*cv.width-RW,y:(e.clientY-r.top)/r.height*cv.height-RW};}
+let aiming=false;
+cv.addEventListener('pointerdown',e=>{if(moving||cueAnim)return;cv.setPointerCapture(e.pointerId);
+  if(inHand){const p=toPlay(e);for(const k of [inHand.me,inHand.op]){const b=S.balls[k];if(Math.hypot(p.x-b.x,p.y-b.y)<R*2.6){dragBall=k;return;}}}
+  aiming=true;aimTo(e);});
+function freeSpot(k,x,y){
+  if(Math.hypot(x-S.balls.r.x,y-S.balls.r.y)<2*R+1)return false;
+  for(const q of KEYS)if(q!==k&&Math.hypot(x-S.balls[q].x,y-S.balls[q].y)<2*R+1)return false;
+  for(const pn of S.pins)if(Math.hypot(x-pn.x,y-pn.y)<R+PR+2)return false;
+  return true;}
+const halfOf=x=>x<PW/2?0:1;
+function clampHalf(x,h){return h?Math.max(PW/2+R,Math.min(PW-R,x)):Math.max(R,Math.min(PW/2-R,x));}
+function dragTo(e){const p=toPlay(e);let x=Math.max(R,Math.min(PW-R,p.x)),y=Math.max(R,Math.min(PH-R,p.y));
+  const k=dragBall,o=S.balls[inHand.op],m=S.balls[inHand.me];
+  if(k===inHand.me)x=clampHalf(x,halfOf(o.x));
+  if(!freeSpot(k,x,y))return;
+  S.balls[k].x=x;S.balls[k].y=y;
+  if(k===inHand.op&&halfOf(m.x)!==halfOf(x)){const nx=clampHalf(PW-m.x,halfOf(x));if(freeSpot(inHand.me,nx,m.y))m.x=nx;}
+  aimAtOpp();}
+cv.addEventListener('pointermove',e=>{if(dragBall)dragTo(e);else if(aiming)aimTo(e);});
+cv.addEventListener('pointerup',()=>{aiming=false;dragBall=null;});
+function aimTo(e){const p=toPlay(e),b=S.balls[me()];if(Math.hypot(p.x-b.x,p.y-b.y)<4)return;setAngle(Math.atan2(p.y-b.y,p.x-b.x)*180/Math.PI);}
+$('ang').addEventListener('input',e=>setAngle(+e.target.value));
+$('aL').onclick=()=>setAngle(angle-0.2);$('aR').onclick=()=>setAngle(angle+0.2);
+$('pow').addEventListener('input',e=>{power=+e.target.value;$('powOut').textContent=power;});
+function setSpin(a,b){sx=Math.round(a*20)/20;sy=Math.round(b*20)/20;
+  const m=Math.hypot(sx,sy),k=m>1?1/m:1;
+  $('spDot').setAttribute('cx',sx*k*43);$('spDot').setAttribute('cy',-sy*k*43);
+  $('spH').value=Math.round(sx*100);$('spV').value=Math.round(sy*100);
+  const p=[];if(sy>0.04)p.push('alto '+Math.round(sy*100)+'%');if(sy<-0.04)p.push('basso '+Math.round(-sy*100)+'%');if(sx>0.04)p.push('destra '+Math.round(sx*100)+'%');if(sx<-0.04)p.push('sinistra '+Math.round(-sx*100)+'%');
+  $('spinOut').textContent=p.length?p.join(', '):'centro';}
+$('spH').addEventListener('input',e=>setSpin(+e.target.value/100,sy));
+$('spV').addEventListener('input',e=>setSpin(sx,+e.target.value/100));
+$('spC').onclick=()=>setSpin(0,0);
+$('newg').onclick=()=>{if(!moving&&!cueAnim)newGame();};
+$('shoot').onclick=()=>{if(moving||cueAnim)return;inHand=null;dragBall=null;cueAnim={t:0};};
+
+/* fisica: un solo motore, usato sia per il tiro sia per la previsione */
+const speedOf=p=>150+p/100*2250;
+function launch(st){
+  const b=st.balls[me()],a=angle*Math.PI/180,v=speedOf(power);
+  b.vx=Math.cos(a)*v;b.vy=Math.sin(a)*v;b.side=sx;b.fol=sy;
+  st.ev={shooter:me(),opp:opp(),first:null,oppHitRed:false,meHitRed:false,pinsBy:[]};
+}
+function step(st){
+  for(const k of KEYS){const b=st.balls[k],s=Math.hypot(b.vx,b.vy);
+    if(s>0){const d=FR*DT;if(s<=d){b.vx=b.vy=0;}else{b.vx*=(s-d)/s;b.vy*=(s-d)/s;}}
+    b.side*=1-0.25*DT;b.fol*=1-0.35*DT;
+    b.x+=b.vx*DT;b.y+=b.vy*DT;
+    let hit=false;
+    if(b.x<R){b.x=R;hit=rail(b,-1,0)||hit;} if(b.x>PW-R){b.x=PW-R;hit=rail(b,1,0)||hit;}
+    if(b.y<R){b.y=R;hit=rail(b,0,-1)||hit;} if(b.y>PH-R){b.y=PH-R;hit=rail(b,0,1)||hit;}
+    if(hit&&k===st.ev.shooter&&!st.ev.first)st.ev.railFirst=true;
+    for(const p of st.pins){if(p.up&&Math.hypot(p.x-b.x,p.y-b.y)<R+PR){p.up=false;st.ev.pinsBy.push({t:p.t,by:k});b.vx*=0.97;b.vy*=0.97;}}
+  }
+  for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)collide(st,KEYS[i],KEYS[j]);
+}
+function rail(b,nx,ny){
+  const vn=b.vx*nx+b.vy*ny;if(vn<=0)return false;
+  b.vx-=(1+0.78)*vn*nx;b.vy-=(1+0.78)*vn*ny;
+  const k=0.5*b.side*vn;b.vx+=-k*ny;b.vy+=k*nx;b.side*=0.55;return true;
+}
+function collide(st,ka,kb){
+  const a=st.balls[ka],b=st.balls[kb];let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+  if(d>=2*R||d===0)return;const nx=dx/d,ny=dy/d,ov=2*R-d;
+  a.x-=nx*ov/2;a.y-=ny*ov/2;b.x+=nx*ov/2;b.y+=ny*ov/2;
+  const rel=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;if(rel<=0)return;
+  const pre={a:{vx:a.vx,vy:a.vy},b:{vx:b.vx,vy:b.vy}};
+  const j=rel*(1+0.96)/2;a.vx-=j*nx;a.vy-=j*ny;b.vx+=j*nx;b.vy+=j*ny;
+  for(const [o,k] of [[a,'a'],[b,'b']]){if(Math.abs(o.fol)>0.02){const s=Math.hypot(pre[k].vx,pre[k].vy);if(s>1){o.vx+=pre[k].vx*o.fol*0.36;o.vy+=pre[k].vy*o.fol*0.36;}o.fol=0;}}
+  const e=st.ev,pair=[ka,kb];
+  if(pair.includes(e.shooter)&&!e.first)e.first=pair.find(x=>x!==e.shooter);
+  if(e.first===e.opp){
+    if(pair.includes(e.opp)&&pair.includes('r'))e.oppHitRed=true;
+    if(pair.includes(e.shooter)&&pair.includes('r'))e.meHitRed=true;
+  }
+  if(!e.firstContact&&pair.includes(e.shooter))e.firstContact={x:st.balls[e.shooter].x,y:st.balls[e.shooter].y};
+}
+const still=st=>KEYS.every(k=>Math.hypot(st.balls[k].vx,st.balls[k].vy)<3);
+function stopAll(st){KEYS.forEach(k=>{st.balls[k].vx=st.balls[k].vy=0;});}
+const clone=st=>JSON.parse(JSON.stringify(st));
+
+/* previsione: simula il tiro su una copia e registra i percorsi */
+function predict(){
+  const st=clone(S);launch(st);
+  const paths={w:[],y:[],r:[]},moved={w:false,y:false,r:false};let n=0,cutAt={};
+  KEYS.forEach(k=>paths[k].push([st.balls[k].x,st.balls[k].y]));
+  while(n<240*25){step(st);n++;
+    if(n%3===0)KEYS.forEach(k=>{const b=st.balls[k];if(b.vx||b.vy){moved[k]=true;paths[k].push([b.x,b.y]);}});
+    if(st.ev.first&&cutAt.first==null)cutAt.first=paths[st.ev.shooter].length;
+    if(still(st))break;}
+  KEYS.forEach(k=>paths[k].push([st.balls[k].x,st.balls[k].y]));
+  return{paths,moved,ev:st.ev,fallen:st.pins.filter(p=>!p.up),shooter:st.ev.shooter,cut:cutAt.first,final:KEYS.reduce((o,k)=>(o[k]={x:st.balls[k].x,y:st.balls[k].y},o),{})};
+}
+function drawPred(){
+  const key=[turn,angle,power,sx,sy,KEYS.map(k=>S.balls[k].x+','+S.balls[k].y).join()].join('|');
+  if(key!==predKey){pred=predict();predKey=key;}
+  const P=pred,sh=P.shooter,short=false;
+  const line=(pts,color,w,dash,alpha)=>{if(pts.length<2)return;cx.save();cx.globalAlpha=alpha;cx.strokeStyle=color;cx.lineWidth=w;cx.setLineDash(dash);cx.lineJoin='round';cx.beginPath();pts.forEach((q,i)=>i?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1]));cx.stroke();cx.restore();};
+  const trim=(pts,len)=>{let L=0,out=[pts[0]];for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(L+d>len){const f=(len-L)/d;out.push([pts[i-1][0]+(pts[i][0]-pts[i-1][0])*f,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*f]);return out;}L+=d;out.push(pts[i]);}return out;};
+  let mine=P.paths[sh];
+  if(short&&P.cut)mine=mine.slice(0,P.cut+1);
+  line(mine,'#ffffff',2.5,[10,8],.8);
+  for(const k of KEYS){if(k===sh||!P.moved[k])continue;let pts=P.paths[k];if(short)pts=trim(pts,260);line(pts,COL[k],3,[6,6],.9);}
+  if(P.ev.firstContact){const q=P.ev.firstContact;cx.save();cx.strokeStyle='rgba(255,255,255,.9)';cx.lineWidth=2;cx.beginPath();cx.arc(q.x,q.y,R,0,7);cx.stroke();cx.restore();}
+  if(!short)for(const k of KEYS){if(!P.moved[k])continue;const f=P.final[k];cx.save();cx.globalAlpha=.45;cx.strokeStyle=COL[k];cx.lineWidth=2;cx.setLineDash([3,3]);cx.beginPath();cx.arc(f.x,f.y,R,0,7);cx.stroke();cx.restore();}
+  for(const p of P.fallen){cx.save();cx.strokeStyle='#ffd23f';cx.lineWidth=2.2;cx.beginPath();cx.arc(p.x,p.y,PR+6,0,7);cx.stroke();cx.restore();}
+}
+
+function drawBase(){
+  const S0=me(),b=S.balls[S0],a=angle*Math.PI/180,d={x:Math.cos(a),y:Math.sin(a)};
+  let t=Infinity;
+  if(d.x>1e-9)t=Math.min(t,(PW-R-b.x)/d.x);if(d.x<-1e-9)t=Math.min(t,(R-b.x)/d.x);
+  if(d.y>1e-9)t=Math.min(t,(PH-R-b.y)/d.y);if(d.y<-1e-9)t=Math.min(t,(R-b.y)/d.y);
+  let hitBall=null;
+  for(const k of KEYS){if(k===S0)continue;const o=S.balls[k],fx=b.x-o.x,fy=b.y-o.y,bb=fx*d.x+fy*d.y,cc=fx*fx+fy*fy-4*R*R,disc=bb*bb-cc;
+    if(disc>=0){const tt=-bb-Math.sqrt(disc);if(tt>0&&tt<t){t=tt;hitBall=k;}}}
+  const q={x:b.x+d.x*t,y:b.y+d.y*t};
+  cx.save();cx.setLineDash([9,8]);cx.lineWidth=2.4;cx.strokeStyle='rgba(243,236,220,.8)';
+  cx.beginPath();cx.moveTo(b.x,b.y);cx.lineTo(q.x,q.y);cx.stroke();
+  cx.setLineDash([]);cx.lineWidth=2;cx.strokeStyle=hitBall?COL[hitBall]:'rgba(243,236,220,.9)';
+  cx.beginPath();cx.arc(q.x,q.y,R,0,7);cx.stroke();cx.restore();
+}
+function shotPoints(e){
+  let pts=0;const parts=[];const all=e.pinsBy;
+  const ext=all.filter(p=>p.t==='ext').length,int=all.filter(p=>p.t==='int').length,red=all.some(p=>p.t==='red');
+  if(ext){pts+=ext*2;parts.push(ext+(ext>1?' esterni':' esterno'));}
+  if(int){pts+=int*8;parts.push(int+(int>1?' interni':' interno'));}
+  if(red){const v=(ext+int)?10:30;pts+=v;parts.push('rosso '+v);}
+  if(e.oppHitRed){pts+=6;parts.push('avversaria sul pallino');}
+  if(e.meHitRed){pts+=6;parts.push('tua sul pallino');}
+  if(e.railFirst&&pts){pts*=2;parts.push('doppio per la sponda');}
+  return{pts,parts};
+}
+function settle(){
+  moving=false;const e=S.ev,op=1-turn,N=['Z','P'];
+  if(!e.first){
+    score[op]+=2;inHand={me:opp(),op:me()};
+    msg('<b>Fallo, nessuna biglia toccata:</b> 2 punti a '+N[op]+'. '+N[op]+' ha la biglia in mano: trascina la biglia di '+N[turn]+' e la tua, tutte e due nella stessa metà del tavolo.');
+  }else if(e.first==='r'){
+    score[op]+=4;msg('<b>Fallo, prima il pallino rosso:</b> 4 punti a '+N[op]+'.');
+  }else{
+    const {pts,parts}=shotPoints(e);
+    if(e.pinsBy.some(p=>p.by===e.shooter)){
+      score[op]+=pts;msg('<b>Fallo, birilli con la tua biglia:</b> '+pts+' punti a '+N[op]+(parts.length?' ('+parts.join(', ')+')':'')+'.');
+    }else{
+      score[turn]+=pts;msg(pts?'<b>+'+pts+' a '+N[turn]+'</b> · '+parts.join(', ')+'.':'Tiro valido, nessun punto.');
+    }
+  }
+  turn=op;S.pins=makePins();ui();aimAtOpp();
+}
+
+/* disegno */
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
+function dm(x,y){cx.beginPath();cx.moveTo(x,y-5);cx.lineTo(x+4,y);cx.lineTo(x,y+5);cx.lineTo(x-4,y);cx.closePath();cx.fill();}
+function drawTable(){
+  const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);
+  cx.fillStyle='#2b130c';rr(0,0,W,H,26);cx.fill();
+  cx.fillStyle='#5c2a17';rr(5,5,W-10,H-10,22);cx.fill();cx.strokeStyle='rgba(201,162,90,.55)';cx.lineWidth=1.5;rr(12,12,W-24,H-24,17);cx.stroke();
+  cx.fillStyle='#14432c';cx.fillRect(RW-9,RW-9,PW+18,PH+18);
+  cx.fillStyle='#1d5a3b';cx.fillRect(RW,RW,PW,PH);
+  cx.fillStyle='#e6d3a3';
+  for(let i=1;i<8;i++){dm(RW+i*PW/8,RW/2-6);dm(RW+i*PW/8,H-RW/2+6);}
+  for(let j=1;j<4;j++){dm(RW/2-6,RW+j*PH/4);dm(W-RW/2+6,RW+j*PH/4);}
+}
+function drawPins(){for(const p of S.pins){if(!p.up)continue;cx.fillStyle='rgba(0,0,0,.25)';cx.beginPath();cx.arc(p.x+2,p.y+2,PR+1,0,7);cx.fill();
+  cx.fillStyle=p.t==='red'?'#a8231f':'#f3ecdc';cx.beginPath();cx.arc(p.x,p.y,PR+1,0,7);cx.fill();cx.strokeStyle='rgba(0,0,0,.4)';cx.lineWidth=1;cx.stroke();}}
+function drawBall(k){const b=S.balls[k];cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.arc(b.x+3,b.y+4,R,0,7);cx.fill();
+  cx.fillStyle=COL[k];cx.beginPath();cx.arc(b.x,b.y,R,0,7);cx.fill();cx.strokeStyle='rgba(0,0,0,.35)';cx.lineWidth=1;cx.stroke();
+  cx.fillStyle='rgba(255,255,255,.55)';cx.beginPath();cx.arc(b.x-4,b.y-4,3.2,0,7);cx.fill();}
+function drawCue(pull){
+  const b=S.balls[me()],a=angle*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a),px=-dy,py=dx,off=sx*R*0.8;
+  const g=R+4+pull,L=620,ox=b.x+px*off,oy=b.y+py*off;
+  const t0={x:ox-dx*g,y:oy-dy*g},t1={x:ox-dx*(g+L),y:oy-dy*(g+L)};
+  const poly=(s,e,w0,w1,c)=>{cx.fillStyle=c;cx.beginPath();cx.moveTo(s.x+px*w0,s.y+py*w0);cx.lineTo(e.x+px*w1,e.y+py*w1);cx.lineTo(e.x-px*w1,e.y-py*w1);cx.lineTo(s.x-px*w0,s.y-py*w0);cx.closePath();cx.fill();};
+  const at=f=>({x:t0.x+(t1.x-t0.x)*f,y:t0.y+(t1.y-t0.y)*f});
+  cx.save();cx.globalAlpha=.25;cx.translate(5,7);poly(t0,t1,3.5,9,'#000');cx.restore();
+  poly(t0,at(.015),3.3,3.5,'#3b6fb6');poly(at(.015),at(.035),3.5,3.6,'#f2efe6');
+  poly(at(.035),at(.62),3.6,6.5,'#dcc08e');poly(at(.62),at(.645),6.5,6.7,'#c9a25a');poly(at(.645),at(.8),6.7,7.6,'#4a1a10');poly(at(.8),at(.81),7.6,7.7,'#c9a25a');poly(at(.81),t1,7.7,9,'#1a0f0b');
+}
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  cx.setTransform(1,0,0,1,0,0);drawTable();cx.translate(RW,RW);
+  if(moving){acc+=dt;while(acc>=DT&&moving){step(S);acc-=DT;if(still(S)){stopAll(S);settle();}}}
+  else acc=0;
+  if(inHand&&!moving&&!cueAnim){const h=halfOf(S.balls[inHand.op].x);cx.save();cx.fillStyle='rgba(201,162,90,.10)';cx.fillRect(h?PW/2:0,0,PW/2,PH);
+    cx.setLineDash([8,8]);cx.strokeStyle='rgba(201,162,90,.7)';cx.lineWidth=2;cx.beginPath();cx.moveTo(PW/2,0);cx.lineTo(PW/2,PH);cx.stroke();
+    cx.setLineDash([]);for(const k of [inHand.me,inHand.op]){const b=S.balls[k];cx.beginPath();cx.arc(b.x,b.y,R+6,0,7);cx.stroke();}cx.restore();}
+  drawPins();
+  if(!moving&&!cueAnim){if($('hFull').checked)drawPred();else if($('hBase').checked)drawBase();}
+  ['r','y','w'].forEach(drawBall);
+  if(!moving){const pre=10+power*0.6;let pull=pre;
+    if(cueAnim){cueAnim.t+=dt;const t=cueAnim.t;
+      if(t<0.22)pull=pre+t/0.22*40;
+      else if(t<0.3)pull=(pre+40)*(1-(t-0.22)/0.08);
+      else{cueAnim=null;launch(S);moving=true;acc=0;msg('…');}}
+    if(!moving)drawCue(pull);}
+  requestAnimationFrame(frame);
+}
+newGame();setSpin(0,0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
