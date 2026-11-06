@@ -126,7 +126,7 @@ details ul{margin:8px 0 0;padding-left:18px}
       <li>Se la tua biglia tocca una sponda prima di colpire l'avversaria, i punti del tiro raddoppiano.</li>
       <li>Birilli abbattuti con la tua biglia: tutti i punti del tiro vanno all'avversario.</li>
       <li>Prima il pallino rosso: 4 punti all'avversario, anche se hai fatto sponda prima.</li>
-      <li>Nessuna biglia toccata: 2 punti all'avversario, che ha la biglia in mano e posiziona entrambe le biglie nella stessa metà del tavolo.</li>
+      <li>Nessuna biglia toccata: 2 punti all'avversario, che ha la biglia in mano e mette la propria biglia dove vuole nella metà del tavolo opposta a quella dell'avversario.</li>
       <li>I birilli si rialzano a ogni tiro. Il tiro completo simula il colpo con lo stesso motore fisico, effetto compreso.</li>
     </ul>
   </details>
@@ -170,7 +170,7 @@ function ui(){
 function toPlay(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*cv.width-RW,y:(e.clientY-r.top)/r.height*cv.height-RW};}
 let aiming=false;
 cv.addEventListener('pointerdown',e=>{if(moving||cueAnim)return;cv.setPointerCapture(e.pointerId);
-  if(inHand){const p=toPlay(e);for(const k of [inHand.me,inHand.op]){const b=S.balls[k];if(Math.hypot(p.x-b.x,p.y-b.y)<R*2.6){dragBall=k;return;}}}
+  if(inHand){const p=toPlay(e);const b=S.balls[inHand.me];if(Math.hypot(p.x-b.x,p.y-b.y)<R*2.6){dragBall=inHand.me;return;}}
   aiming=true;aimTo(e);});
 function freeSpot(k,x,y){
   if(Math.hypot(x-S.balls.r.x,y-S.balls.r.y)<2*R+1)return false;
@@ -179,13 +179,14 @@ function freeSpot(k,x,y){
   return true;}
 const halfOf=x=>x<PW/2?0:1;
 function clampHalf(x,h){return h?Math.max(PW/2+R,Math.min(PW-R,x)):Math.max(R,Math.min(PW/2-R,x));}
-function dragTo(e){const p=toPlay(e);let x=Math.max(R,Math.min(PW-R,p.x)),y=Math.max(R,Math.min(PH-R,p.y));
-  const k=dragBall,o=S.balls[inHand.op],m=S.balls[inHand.me];
-  if(k===inHand.me)x=clampHalf(x,halfOf(o.x));
-  if(!freeSpot(k,x,y))return;
-  S.balls[k].x=x;S.balls[k].y=y;
-  if(k===inHand.op&&halfOf(m.x)!==halfOf(x)){const nx=clampHalf(PW-m.x,halfOf(x));if(freeSpot(inHand.me,nx,m.y))m.x=nx;}
-  aimAtOpp();}
+const allowedHalf=()=>1-halfOf(S.balls[inHand.op].x);
+function dragTo(e){const p=toPlay(e);const x=clampHalf(p.x,allowedHalf()),y=Math.max(R,Math.min(PH-R,p.y));
+  if(!freeSpot(inHand.me,x,y))return;S.balls[inHand.me].x=x;S.balls[inHand.me].y=y;aimAtOpp();}
+function startInHand(){
+  const m=S.balls[inHand.me],h=allowedHalf();if(halfOf(m.x)===h)return;
+  const cands=[[PW-m.x,m.y],[h?PW*0.75:PW*0.25,PH/2],[h?PW*0.75:PW*0.25,PH*0.3],[h?PW*0.75:PW*0.25,PH*0.7]];
+  for(const [cx0,cy0] of cands){const x=clampHalf(cx0,h);if(freeSpot(inHand.me,x,cy0)){m.x=x;m.y=cy0;return;}}
+}
 cv.addEventListener('pointermove',e=>{if(dragBall)dragTo(e);else if(aiming)aimTo(e);});
 cv.addEventListener('pointerup',()=>{aiming=false;dragBall=null;});
 function aimTo(e){const p=toPlay(e),b=S.balls[me()];if(Math.hypot(p.x-b.x,p.y-b.y)<4)return;setAngle(Math.atan2(p.y-b.y,p.x-b.x)*180/Math.PI);}
@@ -304,8 +305,8 @@ function shotPoints(e){
 function settle(){
   moving=false;const e=S.ev,op=1-turn,N=['Z','P'];
   if(!e.first){
-    score[op]+=2;inHand={me:opp(),op:me()};
-    msg('<b>Fallo, nessuna biglia toccata:</b> 2 punti a '+N[op]+'. '+N[op]+' ha la biglia in mano: trascina la biglia di '+N[turn]+' e la tua, tutte e due nella stessa metà del tavolo.');
+    score[op]+=2;inHand={me:opp(),op:me()};startInHand();
+    msg('<b>Fallo, nessuna biglia toccata:</b> 2 punti a '+N[op]+'. '+N[op]+' ha la biglia in mano: trascina la tua biglia dove vuoi nella metà del tavolo opposta a quella di '+N[turn]+'.');
   }else if(e.first==='r'){
     score[op]+=4;msg('<b>Fallo, prima il pallino rosso:</b> 4 punti a '+N[op]+'.');
   }else{
@@ -353,9 +354,9 @@ function frame(now){
   cx.setTransform(1,0,0,1,0,0);drawTable();cx.translate(RW,RW);
   if(moving){acc+=dt;while(acc>=DT&&moving){step(S);acc-=DT;if(still(S)){stopAll(S);settle();}}}
   else acc=0;
-  if(inHand&&!moving&&!cueAnim){const h=halfOf(S.balls[inHand.op].x);cx.save();cx.fillStyle='rgba(201,162,90,.10)';cx.fillRect(h?PW/2:0,0,PW/2,PH);
+  if(inHand&&!moving&&!cueAnim){const h=allowedHalf();cx.save();cx.fillStyle='rgba(201,162,90,.10)';cx.fillRect(h?PW/2:0,0,PW/2,PH);
     cx.setLineDash([8,8]);cx.strokeStyle='rgba(201,162,90,.7)';cx.lineWidth=2;cx.beginPath();cx.moveTo(PW/2,0);cx.lineTo(PW/2,PH);cx.stroke();
-    cx.setLineDash([]);for(const k of [inHand.me,inHand.op]){const b=S.balls[k];cx.beginPath();cx.arc(b.x,b.y,R+6,0,7);cx.stroke();}cx.restore();}
+    cx.setLineDash([]);{const b=S.balls[inHand.me];cx.beginPath();cx.arc(b.x,b.y,R+6,0,7);cx.stroke();}cx.restore();}
   drawPins();
   if(!moving&&!cueAnim){if($('hFull').checked)drawPred();else if($('hBase').checked)drawBase();}
   ['r','y','w'].forEach(drawBall);
