@@ -138,7 +138,7 @@ details ul{margin:8px 0 0;padding-left:18px}
   </div>
 
   <div class="trainbar" id="trainBar">
-    <p>Trascina le biglie per preparare il tiro. Tiri sempre con la bianca.</p>
+    <p>Trascina le biglie per preparare il tiro. Tiri sempre con la bianca. In partita la bianca apre da dove vuole nella metà sinistra.</p>
     <div class="btns"><button id="redo">Ripeti tiro</button><button id="resetTrain">Posizione iniziale</button></div>
   </div>
 
@@ -193,7 +193,9 @@ details ul{margin:8px 0 0;padding-left:18px}
   <details>
     <summary>Punteggio</summary>
     <ul>
+      <li>Apertura: pallino e gialla sulla linea centrale nella metà destra, la bianca si mette dove si vuole nella metà sinistra.</li>
       <li>Si tira a turno. Con la tua biglia devi colpire prima quella avversaria.</li>
+      <li>Quando sbagli e i punti vanno all'avversario, arriva il Vecio: cin cin.</li>
       <li>Birilli: esterno 2, interno 8, rosso 10 con altri birilli, 30 da solo. Pallino rosso colpito: 6.</li>
       <li>Se la tua biglia tocca una sponda prima di colpire l'avversaria, i punti del tiro raddoppiano.</li>
       <li>Birilli abbattuti con la tua biglia: tutti i punti del tiro vanno all'avversario.</li>
@@ -239,7 +241,7 @@ function makePins(){
   return p;
 }
 const ball=(x,y)=>({x,y,vx:0,vy:0,side:0,fol:0});
-const freshTable=()=>({balls:{w:ball(200,330),y:ball(800,170),r:ball(800,330)},pins:makePins(),ev:null});
+const freshTable=()=>({balls:{w:ball(220,250),y:ball(935,250),r:ball(750,250)},pins:makePins(),ev:null});
 const turnIdx=()=>mode==='match'?match.turn:0;
 const me=()=>turnIdx()?'y':'w', opp=()=>turnIdx()?'w':'y';
 const isCpuTurn=()=>mode==='match'&&match&&!match.over&&match.players[match.turn].cpu;
@@ -383,15 +385,14 @@ function strike(){launch(S,curParams());moving=true;acc=0;if(mode==='train')msg(
 function settle(){
   moving=false;const r=evaluate(S.ev);S.pins=makePins();
   if(mode==='train'){
-    if(r.to==='me'){msg(r.pts?'<b>+'+r.pts+' punti</b> · '+r.text+'.':r.text+'.');if(r.pts)cheers(r.pts);}
-    else msg('<b>'+r.text+':</b> '+r.pts+' punti all\'avversario.'+(r.parts&&r.parts.length?' ('+r.parts.join(', ')+')':''));
+    if(r.to==='me'){msg(r.pts?'<b>+'+r.pts+' punti</b> · '+r.text+'.':r.text+'.');}
+    else{msg('<b>'+r.text+':</b> '+r.pts+' punti all\'avversario.'+(r.parts&&r.parts.length?' ('+r.parts.join(', ')+')':''));if(r.pts)cheers('+'+r.pts+' all\'avversario');}
     tipKey='';aimAtOpp();return;
   }
   const t=match.turn,o=1-t,P=match.players,nm=i=>CHARS[P[i].char].name;
-  if(r.to==='me'){match.score[t]+=r.pts;msg(r.pts?'<b>+'+r.pts+' a '+nm(t)+'</b> · '+r.text+'.':nm(t)+': '+r.text.toLowerCase()+'.');
-    if(r.pts&&!P[t].cpu)cheers(r.pts);}
+  if(r.to==='me'){match.score[t]+=r.pts;msg(r.pts?'<b>+'+r.pts+' a '+nm(t)+'</b> · '+r.text+'.':nm(t)+': '+r.text.toLowerCase()+'.');}
   else{match.score[o]+=r.pts;msg('<b>'+r.text+':</b> '+r.pts+' punti a '+nm(o)+'.'+(r.parts&&r.parts.length?' ('+r.parts.join(', ')+')':''));
-    if(!P[o].cpu&&P[t].cpu&&r.pts)cheers(r.pts);}
+    if(r.pts)cheers('+'+r.pts+' a '+nm(o));}
   match.turn=o;
   if(r.inHand){inHand={me:o?'y':'w',op:t?'y':'w'};placeInHand();
     if(!P[o].cpu)msg($('msg').innerHTML+' '+nm(o)+' ha la biglia in mano: trascina la tua biglia nella metà illuminata.');}
@@ -409,7 +410,7 @@ function placeInHand(){
 
 /* cin cin */
 let cinT=null;
-function cheers(pts){const c=$('cin');$('cinPts').textContent='+'+pts+' punti';c.classList.add('show');clearTimeout(cinT);cinT=setTimeout(()=>c.classList.remove('show'),1700);}
+function cheers(txt){const c=$('cin');$('cinPts').textContent=txt;c.classList.add('show');clearTimeout(cinT);cinT=setTimeout(()=>c.classList.remove('show'),2200);}
 
 /* computer */
 function cpuPlay(){
@@ -635,8 +636,8 @@ function updateScore(){
 function startMatch(){
   const cpu=setupSel.level>0;
   match={players:[{char:setupSel.me,cpu:false},{char:setupSel.opp,cpu,level:setupSel.level||0}],score:[0,0],turn:0,target:setupSel.target,over:false,S:freshTable()};
-  S=match.S;inHand=null;$('win').hidden=true;applyMode();aimAtOpp();setSpin(0,0);
-  msg('Inizia '+CHARS[setupSel.me].name+'. Colpisci prima la biglia gialla.');
+  S=match.S;inHand={me:'w',op:'y'};$('win').hidden=true;applyMode();aimAtOpp();setSpin(0,0);
+  msg('Inizia '+CHARS[setupSel.me].name+': trascina la bianca dove vuoi nella metà sinistra, poi tira sulla gialla.');
 }
 function showWin(i){const c=CHARS[match.players[i].char];$('winImg').src=c.img;$('winTxt').textContent='Vince '+c.name;$('winScore').textContent=match.score[0]+' a '+match.score[1];$('win').hidden=false;updateScore();}
 function applyMode(){
